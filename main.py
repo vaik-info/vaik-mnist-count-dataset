@@ -51,7 +51,7 @@ def crop_char_image(mnist_char_image):
 
 
 def write(output_sub_dir_path, sample_num, image_max_size, image_min_size, char_max_size, char_min_size, char_max_num,
-          char_min_num, x, y, colors, classes):
+          char_min_num, x, y, classes):
     os.makedirs(output_sub_dir_path, exist_ok=True)
 
     for file_index in tqdm(range(sample_num), desc=f'write at {output_sub_dir_path}'):
@@ -60,7 +60,10 @@ def write(output_sub_dir_path, sample_num, image_max_size, image_min_size, char_
             dtype=np.uint8)
         count_dict = {}
         for char_index in range(random.randint(char_min_num, char_max_num)):
-            mnist_index = random.randint(0, y.shape[0]-1)
+            while True:
+                mnist_index = random.randint(0, y.shape[0]-1)
+                if len(classes) > y[mnist_index]:
+                    break
             if classes[y[mnist_index]] not in count_dict.keys():
                 count_dict[classes[y[mnist_index]]] = 0
             count_dict[classes[y[mnist_index]]] += 1
@@ -105,19 +108,18 @@ def main(output_dir_path, train_sample_num, valid_sample_num, image_max_size, im
     with open(classes_txt_path) as f:
         for line in f:
             classes.append(line.strip())
-    colors = get_classes_color(classes)
 
     output_train_dir_path = os.path.join(output_dir_path, 'train')
     write(output_train_dir_path, train_sample_num, image_max_size, image_min_size, char_max_size, char_min_size,
-          char_max_num, char_min_num, x_train, y_train, colors, classes)
+          char_max_num, char_min_num, x_train, y_train, classes)
 
     output_valid_dir_path = os.path.join(output_dir_path, 'valid')
     write(output_valid_dir_path, valid_sample_num, image_max_size, image_min_size, char_max_size, char_min_size,
-          char_max_num, char_min_num, x_test, y_test, colors, classes)
+          char_max_num, char_min_num, x_test, y_test, classes)
 
     shutil.copy(classes_txt_path, os.path.join(output_dir_path, os.path.basename(classes_txt_path)))
 
-    json_dict = {'classes': classes, 'colors': colors}
+    json_dict = {'classes': classes}
     with open(os.path.join(output_dir_path, 'classes.json'), 'w') as f:
         json.dump(json_dict, f, ensure_ascii=False, indent=4, sort_keys=True, separators=(',', ': '))
 
