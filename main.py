@@ -96,14 +96,13 @@ def write(output_sub_dir_path, sample_num, image_max_size, image_min_size, char_
             json.dump(count_dict, f)
 
 
-def main(output_dir_path, train_sample_num, valid_sample_num, image_max_size, image_min_size, char_max_size,
+def main(output_dir_path, classes_txt_path, train_sample_num, valid_sample_num, image_max_size, image_min_size, char_max_size,
          char_min_size, char_max_num, char_min_num):
     os.makedirs(output_dir_path, exist_ok=True)
 
     mnist = tf.keras.datasets.mnist
     (x_train, y_train), (x_test, y_test) = mnist.load_data()
 
-    classes_txt_path = os.path.join(os.path.dirname(__file__), 'classes.txt')
     classes = []
     with open(classes_txt_path) as f:
         for line in f:
@@ -127,6 +126,7 @@ def main(output_dir_path, train_sample_num, valid_sample_num, image_max_size, im
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='main')
     parser.add_argument('--output_dir_path', type=str, default='~/.vaik-mnist-count-dataset')
+    parser.add_argument('--classes_txt_path', type=str, default=os.path.join(os.path.dirname(__file__), 'classes.txt'))
     parser.add_argument('--train_sample_num', type=int, default=40000)
     parser.add_argument('--valid_sample_num', type=int, default=100)
     parser.add_argument('--image_max_size', type=int, default=320)
@@ -137,6 +137,7 @@ if __name__ == '__main__':
     parser.add_argument('--char_min_num', type=int, default=1)
     args = parser.parse_args()
 
+    args.classes_txt_path = os.path.expanduser(args.classes_txt_path)
     args.output_dir_path = os.path.expanduser(args.output_dir_path)
 
     main(**args.__dict__)
